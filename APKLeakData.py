@@ -4,20 +4,7 @@ import re
 import threading
 import argparse
 import json
-
-class bcolors:
-    TITLE = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    INFO = '\033[93m'
-    OKRED = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    BGRED = '\033[41m'
-    UNDERLINE = '\033[4m'
-    FGWHITE = '\033[37m'
-    FAIL = '\033[95m'
-
+from src.ColorizedPrint import ColorizedPrint as myPrint
 
 
 rootDir=os.path.expanduser("~")+"/.APKLeakData/" #ConfigFolder ~/.SourceCodeAnalyzer/
@@ -47,44 +34,6 @@ publicIp="https*://(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?<!172\.(16
 gMapsAPI="(AIzaSy[\w-]{33})"
 customPatternRegex =[] #if you set custom pattern file, auto load. example: {'AWS_ACCESS_KEY_ID': 'AKIA[0-9A-Z]{16}', 'AWS_SECRET_ACCESS_KEY': '[0-9a-zA-Z/+]{40}'}
 
-def myPrint(text, type):
-    if(type=="INFO"):
-        print(bcolors.INFO+bcolors.BOLD+text+bcolors.ENDC+"\n")
-        return
-    if(type=="INFO_WS"):
-        print(bcolors.INFO+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="PLAIN_OUTPUT_WS"):
-        print(bcolors.INFO+text+bcolors.ENDC)
-        return
-    if(type=="ERROR" and not args.hidden_error):
-        print(bcolors.BGRED+bcolors.FGWHITE+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="MESSAGE_WS"):
-        print(bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="MESSAGE"):
-        print(bcolors.TITLE+bcolors.BOLD+text+bcolors.ENDC+"\n")
-        return
-    if(type=="INSECURE"):
-        print(bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC+"\n")
-        return
-    if(type=="INSECURE_WS"):
-        print(bcolors.OKRED+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="OUTPUT"):
-        print(bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC+"\n")
-        return
-    if(type=="OUTPUT_WS"):
-        print(bcolors.OKBLUE+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="SECURE_WS"):
-        print(bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC)
-        return
-    if(type=="SECURE"):
-        print(bcolors.OKGREEN+bcolors.BOLD+text+bcolors.ENDC+"\n")
-        return
-
 def isValidPath(name, projectPath):
     myPrint("I: Checking if the "+ name +" path is valid.", "INFO_WS")
     if (os.path.exists(projectPath)==False):
@@ -99,7 +48,7 @@ def printList(lst):
     for item in lst:
         counter=counter+1
         entry=str(counter)+". "+str(item)
-        myPrint(entry, "PLAIN_OUTPUT_WS")
+        myPrint(entry, "PLAIN_WS")
 
 def addNewCustomPattern(name, value):
     global customPatternList
@@ -252,7 +201,7 @@ def displayResults():
 
 ####################################################################################################
 
-print(bcolors.OKBLUE+""" 
+myPrint(""" 
 
 ░█████╗░██████╗░██╗░░██╗██╗░░░░░███████╗░█████╗░██╗░░██╗██████╗░░█████╗░████████╗░█████╗░
 ██╔══██╗██╔══██╗██║░██╔╝██║░░░░░██╔════╝██╔══██╗██║░██╔╝██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗
@@ -261,10 +210,11 @@ print(bcolors.OKBLUE+"""
 ██║░░██║██║░░░░░██║░╚██╗███████╗███████╗██║░░██║██║░╚██╗██████╔╝██║░░██║░░░██║░░░██║░░██║
 ╚═╝░░╚═╝╚═╝░░░░░╚═╝░░╚═╝╚══════╝╚══════╝╚═╝░░╚═╝╚═╝░░╚═╝╚═════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝
 
-    """+bcolors.OKRED+bcolors.BOLD+"""                         
+    """, 'OUTPUT')
+myPrint("""                         
                   # Developed By Shiv Sahni - @shiv__sahni
                   # Updated By Furkan Umut Ceylan - @furkanumut
-"""+bcolors.ENDC)
+    """, "INSECURE")
 
 parser = argparse.ArgumentParser(description='Passive Enumeration Utility For Android Applications')
 parser.add_argument('-p', '--project', help='Path to the project directory', required=True)
@@ -274,6 +224,8 @@ parser.add_argument('-he', '--hidden-error', help='Hidden error for filename rea
 args = parser.parse_args()
 
 projectPath=args.project
+isValidPath('Apk Project', projectPath)
+
 if (args.scope):
     scopeString = args.scope
     scopeList = scopeString.split(",")
@@ -285,15 +237,11 @@ if (args.custom):
     customPatternFile = args.custom
     customPattern()
     
-
 try:
-    isValidPath('Apk Project', projectPath)
     performRecon()
     displayResults()
 except KeyboardInterrupt:
-    myPrint("I: Acknowledging KeyboardInterrupt. Thank you for using APKLeakData", "INFO")
+    myPrint("I: Acknowledging KeyboardInterrupt. Thank you for using APKLeakData", "INFO_WS")
     exit(0)
-
-
 
 myPrint("Thank You For Using APKLeakData","OUTPUT")
