@@ -1,18 +1,9 @@
-# APKEnum: Passive Enumeration Utility For Android Applications
+# APKLeakData: Passive Enumeration Utility For Android Applications
 
-[![https://www.python.org/static/community_logos/python-logo.png](https://www.python.org/static/community_logos/python-logo.png)
-
-
-## Installation
-### Prerequisites
-- Support For Python 2.7
-- APKTool JAR
+![https://www.python.org/static/community_logos/python-logo.png](https://www.python.org/static/community_logos/python-logo.png) 
 
 
-**Note:**  The latest APKTool(v2.4.1) JAR file is already shipped with the package. In case you face decompilation issues, you can download the latest version from [here](https://bitbucket.org/iBotPeaches/apktool/downloads/) and place it in the Dependency directory with name *apktool.jar*
-
-### Walkthrough
-To have a look at the quick walkthrough of APKEnum have a look at [this](https://medium.com/@shivsahni2/apkenum-a-python-utility-for-apk-enumeration-cce0eda6fa30) Medium story.
+![](image/apkleakdata_info.png)
 
 ## Usage
 The utility takes APK file as an input, performs reverse engineering and gathers information from the decompiled binary. As of now, the script provides the following information by searching the decompiled code:
@@ -27,16 +18,45 @@ The utility takes APK file as an input, performs reverse engineering and gathers
 
 * List of Google Maps API Keys in the code(**NEW**)
 
-![](https://cdn-images-1.medium.com/max/3448/1*2e5i-_GDljBNRDOYdEscaA.png)
+![](image/apkleakdata_preview.png)
 
-Once downloaded, you just need to provide the pathname of the APK file as shown below:
+| Argument   | DESCRIPTION   | EXAMPLE 
+|---|---| --- |
+| -h  | show help message and args list  | APKLeakData.py -h    |
+| -p  | Set project path (apktool decomple output path)  |   pyhon -p APKLeakData.py -p ~/decompile-apk-path  |
+| -s  | Filter the set words in the domain  |   pyhon -p APKLeakData.py -p ~/decompile-apk-path -s 'mail,ftp,login'  |
+|  -c |  Custom regext pattern file location. File format: Json |  pyhon -p APKLeakData.py -p ~/decompile-apk-path -c custom_search.json   |
+| -he | Hidden File reading error(binary file), Regex parse error | pyhon -p APKLeakData.py -p ~/decompile-apk-path -he |
 
-```
-python APKEnum.py -p ~/Downloads/app-debug.apk
-```
+## Custom Pattern File
+The file must be in json format. You can use multiple patterns in one value. 
 
-Optionally, we can also provide a list of keywords related to the target, the script would then create an additional list of in-scope domains based on the input keyword list apart from the aforementioned lists by performing string match. 
+```json
+{
+    "Pattern Name for list name": "regex parameter",
+    "Multiple Pattern Example": [
+        'regex',
+        'regex2'
+        ],
+	
+    "Google_API_Key": "AIza[0-9A-Za-z\\-_]{35}",
+    "Firebase": [
+		"[a-z0-9.-]+\\.firebaseio\\.com",
+		"[a-z0-9.-]+\\.firebaseapp\\.com"
+	],
+}
+```
+If you want a prepared pattern file, you can use the custom_search.json file.
 
-```
-python APKEnum.py ~/Downloads/app-debug.apk -s "shiv,sahni,alpha,charlie,example"
-```
+The larger the file, the longer it will take. You can set yourself a json which can be critical information for quick scan.
+
+## New Feature
+- It now works with Python 3.
+- "argparse" was used in the argument section, so less if-else was used, it was clean code for arg parse.
+- Repeated codes were organized for Thread. Function was used for repetitive codes.
+- Custom Pattern has been added for the user to search.
+
+## What I plan to do
+- Now we can only use the decompile project with APKTOOL. But I want to add it from the APK file and analyze it.
+- Save the output to a file.
+- Allow the thread limit from the user. In this way, I think it will work faster by increasing the thread limit.
