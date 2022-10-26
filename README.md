@@ -23,10 +23,12 @@ The utility takes APK file as an input, performs reverse engineering and gathers
 | Argument   | DESCRIPTION   | EXAMPLE 
 |---|---| --- |
 | -h  | show help message and args list  | APKLeakData.py -h    |
-| -p  | Set project path (apktool decomple output path)  |   pyhon -p APKLeakData.py -p ~/decompile-apk-path  |
-| -s  | Filter the set words in the domain  |   pyhon -p APKLeakData.py -p ~/decompile-apk-path -s 'mail,ftp,login'  |
-|  -c |  Custom regext pattern file location. File format: Json |  pyhon -p APKLeakData.py -p ~/decompile-apk-path -c custom_search.json   |
-| -he | Hidden File reading error(binary file), Regex parse error | pyhon -p APKLeakData.py -p ~/decompile-apk-path -he |
+| -p  | Set project path (apktool decomple output path)  |   pyhon APKLeakData.py -p ~/decompile-apk-path  |
+| -a | Set apk file | python APKLeakData.py -a apkfile.apk
+| -d | If the apk file is selected, you can choose the decompiler. (Apktool or jadx). Default: apktool | python APKLeakData.py -a apkfile.apk -d jadx
+| -s  | Filter the set words in the domain  |   pyhon APKLeakData.py -p ~/decompile-apk-path -s 'mail,ftp,login'  |
+|  -c |  Custom regext pattern file location. File format: Json |  pyhon APKLeakData.py -p ~/decompile-apk-path -c custom_search.json   |
+| -he | Hidden File reading error(binary file), Regex parse error | pyhon APKLeakData.py -p ~/decompile-apk-path -he |
 
 ## Custom Pattern File
 The file must be in json format. You can use multiple patterns in one value. 
@@ -57,6 +59,6 @@ The larger the file, the longer it will take. You can set yourself a json which 
 - Custom Pattern has been added for the user to search.
 
 ## What I plan to do
-- Now we can only use the decompile project with APKTOOL. But I want to add it from the APK file and analyze it.
+- [X] Now we can only use the decompile project with APKTOOL. But I want to add it from the APK file and analyze it. (Now use apktool or jadx)
 - Save the output to a file.
 - Allow the thread limit from the user. In this way, I think it will work faster by increasing the thread limit.

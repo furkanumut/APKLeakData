@@ -1,13 +1,16 @@
 #!/usr/bin/python
 import os
 import re
-import threading
-import argparse
+import sys
 import json
+import shutil
+import argparse
+import threading
+from src.ApkDecompiler import ApkDecompiler as Decompiler
 from src.ColorizedPrint import ColorizedPrint as myPrint
 
-
-rootDir=os.path.expanduser("~")+"/.APKLeakData/" #ConfigFolder ~/.SourceCodeAnalyzer/
+rootDir=os.getcwd()+"/extractedApk/"
+apkPath=""
 projectPath=""
 apkHash=""
 scopeMode=False
@@ -217,14 +220,36 @@ myPrint("""
     """, "INSECURE")
 
 parser = argparse.ArgumentParser(description='Passive Enumeration Utility For Android Applications')
-parser.add_argument('-p', '--project', help='Path to the project directory', required=True)
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('-p', '--project', help='Path to the project directory')
+group.add_argument('-a', '--apk', help='Set the APK file')
+parser.add_argument('-d', '--decompiler', help='If you select apk option, you can specify the decompiler. Default: apktool', default='apktool', choices=['apktool', 'jadx'], required=False)
 parser.add_argument('-s', '--scope', help='List of keywords to filter out domains', required=False)
 parser.add_argument('-c', '--custom', help='Custom pattern json file', required=False)
 parser.add_argument('-he', '--hidden-error', help='Hidden error for filename read, parse regex', action='store_true', required=False)
 args = parser.parse_args()
 
-projectPath=args.project
-isValidPath('Apk Project', projectPath)
+if args.project:
+    projectPath=args.project
+    isValidPath('Apk Project', projectPath)
+
+elif args.apk:
+    apkPath=args.apk
+    isValidPath('Apk File', apkPath)
+
+    decompiler = args.decompiler
+    apkName = apkPath.split('/')[-1].rsplit('.', maxsplit=1)[0]
+    myPrint("Apk name; "+apkName, "OUTPUT")
+    projectPath=rootDir+apkName+"_"+decompiler
+    if os.path.exists(projectPath):
+        Decompiler.clean_decompile(projectPath)
+
+    myPrint("I: Decompiling the APK file", "INFO_WS")
+    decompile = Decompiler(apkPath, decompiler, projectPath)
+    if decompile.decompile_status != 0:
+        myPrint("E: Decompiling failed, you can change decompiler (jadx or apktool).","ERROR")
+        sys.exit(1)
+    myPrint("I: Decompiling completed", "INFO_WS")
 
 if (args.scope):
     scopeString = args.scope
