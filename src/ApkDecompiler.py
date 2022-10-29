@@ -19,5 +19,5 @@ class ApkDecompiler:
     def jadx_decompile(self):
         return os.system("jadx -d '%s' '%s' >/dev/null" % (self.decompile_path, self.apk_path))
 
-    def clean_decompile(decompile_path):
+    def clean_decompile_path(decompile_path):
         return shutil.rmtree(decompile_path)
