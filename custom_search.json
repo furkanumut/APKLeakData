@@ -1,4 +1,5 @@
 {
+
 	"Sift_Key": "\\.with(?:AccountId|BeaconKey)\\([\"|'].*[\"|']\\)",
 	"Sentry_DSN": "https?:\/\/(\\w+)(:\\w+)?@sentry\\.io\/[0-9]+",
 	"Intercom_API_Key": "Intercom\\.initialize\\([\"|']?\\w+[\"|']?,\\s?[\"|']?\\w+[\"|']?,\\s?[\"|']?\\w+[\"|']?\\)",
@@ -98,5 +99,11 @@
 	],
 	"Slack Webhook": "https://hooks.slack.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}",
 	"Twilio API Key": "SK[0-9a-fA-F]{32}",
-	"FCM Server Keys for push notification": "AAAA[a-zA-Z0-9_-]{7}:[a-zA-Z0-9_-]{140}"
+	"FCM Server Keys for push notification": "AAAA[a-zA-Z0-9_-]{7}:[a-zA-Z0-9_-]{140}",
+    "IP Addresses": {
+        "regex": ["\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b"]
+    },
+    "Urls": {
+        "regex": ["http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"]
+    }
 }

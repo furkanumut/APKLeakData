@@ -12,27 +12,12 @@ root_dir=os.getcwd()+"/extractedApk/"
 apk_path=""
 project_path=""
 scope_mode=False
+pattern_file="./src/regex.json"
+pattern_list=dict()
 
-scope_list=[]
-find_functions_list = []
+scope_list=dict()
 
-authority_list=[]
-in_scope_authority_list=[]
-public_ip_list=[]
-s3_list=[]
-s3_website_list=[]
-gmap_keys=[]
-custom_pattern_list=dict()
-
-urlRegex='(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+):?\d*)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?'#regex to extract domain
-s3Regex1="https*://(.+?)\.s3\..+?\.amazonaws\.com\/.+?"
-s3Regex2="https*://s3\..+?\.amazonaws\.com\/(.+?)\/.+?"
-s3Regex3="S3://(.+?)/"
-s3Website1="https*://(.+?)\.s3-website\..+?\.amazonaws\.com"
-s3Website2="https*://(.+?)\.s3-website-.+?\.amazonaws\.com"
-publicIp="https*://(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?<!172\.(16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31))(?<!127)(?<!^10)(?<!^0)\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?<!192\.168)(?<!172\.(16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31))\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?<!\.255$))"
-gMapsAPI="(AIzaSy[\w-]{33})"
-custom_pattern_regex =[] #if you set custom pattern file, auto load. example: {'AWS_ACCESS_KEY_ID': 'AKIA[0-9A-Z]{16}', 'AWS_SECRET_ACCESS_KEY': '[0-9a-zA-Z/+]{40}'}
+regex_patterns =[]
 
 def is_valid_path(name, project_path):
     print_with_color("I: Checking if the "+ name +" path is valid.", "INFO_WS")
@@ -50,111 +35,62 @@ def print_list(lst):
         entry=str(counter)+". "+str(item)
         print_with_color(entry, "PLAIN_WS")
 
-def add_custom_pattern(name, value):
-    global custom_pattern_list
-    if name in custom_pattern_list:
-        if value in custom_pattern_list[name]:
+def add_pattern(name, value):
+    global pattern_list
+
+    name = name.capitalize()
+    if name in pattern_list:
+        if value in pattern_list[name]:
             return
-        custom_pattern_list[name].append(value)
+        pattern_list[name].append(value)
     else:
-        custom_pattern_list[name]=[value]
+        pattern_list[name]=[value]
 
-def findS3Bucket(line):
-    temp=re.findall(s3Regex1,line)
-    if (len(temp)!=0):
-        for element in temp:
-            s3_list.append(element)
-
-
-    temp=re.findall(s3Regex2,line)
-    if (len(temp)!=0):
-        for element in temp:
-            s3_list.append(element)
-
-
-    temp=re.findall(s3Regex3,line)
-    if (len(temp)!=0):
-        for element in temp:
-            s3_list.append(element)
-
-
-def findGoogleAPIKeys(line):
-    temp=re.findall(gMapsAPI,line)
-    if (len(temp)!=0):
-        for element in temp:
-            gmap_keys.append(element)
-
-def findS3Website(line):
-    temp=re.findall(s3Website1,line)
-    if (len(temp)!=0):
-        for element in temp:
-            s3_website_list.append(element)
-
-    temp=re.findall(s3Website2,line)
-    if (len(temp)!=0):
-        for element in temp:
-            s3_website_list.append(element)
-
-
-def findUrls(line):
-    temp=re.findall(urlRegex,line)
-    if (len(temp)!=0):
-        for element in temp:
-            authority_list.append(element[0]+"://"+element[1])
-            if(scope_mode):
-                for scope in scope_list:
-                    if scope in element[1]:
-                        in_scope_authority_list.append(element[0]+"://"+element[1])
-
-def find_public_ips(line):
-    temp=re.findall(publicIp,line)
-    if (len(temp)!=0):
-        for element in temp:
-            public_ip_list.append(element[0])
-
-def extract_custom_pattern(pattern, name, line):
+def pattern_search(pattern, name, line):
     try:
         temp=re.findall(pattern,line)
-        if (len(temp)!=0):
-            for element in temp:
-                add_custom_pattern(name, element)
+        for element in temp:
+            add_pattern(name, element)
+            if (scope_mode) and (name in scope_list):
+                for scope in scope_list[name].split(","):
+                    if scope in element:
+                        add_pattern("SCOPE "+name, element)
     except:
-        print_with_color("E: Error in custom pattern: "+pattern, "ERROR")
+        print_with_color("E: Error in pattern: "+pattern, "ERROR")
 
+def pattern_file_to_list(file_name):
+    global regex_patterns
+    try:
+        with open(file_name, mode='r') as file:
+            regex_patterns = json.loads(file.read())
+    except:
+        print_with_color("E: Error json parse in pattern file: "+file_name, "ERROR")
+        exit(1)
 
-def find_custom_pattern(line):
-    global find_functions_list
-    threads=[]
-    for name, pattern in custom_pattern_regex.items():
-        if isinstance(pattern, list):
-            for p in pattern:
-                thread = threading.Thread(target=extract_custom_pattern, args=(p, name, line,))
-        else:
-            thread = threading.Thread(target=extract_custom_pattern, args=(pattern, name, line,))
-        thread.start()
-        threads.append(thread)
-    for thread in threads:
-        thread.join()
+def pattern_scope_check():
+    global scope_list
+    global scope_mode
+    global regex_patterns
 
-def custom_pattern():
-    global find_functions_list, custom_pattern_regex
-    with open(custom_pattern_file, mode='r') as file:
-        custom_pattern_regex = json.load(file)
-    if len(custom_pattern_regex)!=0:
-        find_functions_list.append(find_custom_pattern)
-
-
+    for pattern_name in regex_patterns:
+        if isinstance(regex_patterns[pattern_name], dict) :
+            if "scope" in regex_patterns[pattern_name].keys():
+                scope_mode=True
+                scope_list[pattern_name] = regex_patterns[pattern_name]['scope']
+            regex_patterns[pattern_name] = regex_patterns[pattern_name]['regex']
+    
 def perform_recon():
-    global domainList, authority_list, inScopeDomainList, in_scope_authority_list, find_functions_list
-    find_functions_list += [findUrls, findS3Bucket, findS3Website, findGoogleAPIKeys, find_public_ips]
+    global regex_patterns
     without_file_extensions=['.png', '.webp', '.jpg', '.gif', '.otf', '.ttf']
     filecontent=""
 
+    #skip files with extensions
     skipping_walk = lambda target_directory, excluded_extentions: (
         (root, dirs, [F for F in files if os.path.splitext(F)[1] not in excluded_extentions]) 
         for (root, dirs, files) in os.walk(target_directory)
     )
 
+    #file read and search
     for dir_path, dirs, file_names in skipping_walk(project_path, without_file_extensions):
         for file_name in file_names:
             try:
@@ -166,9 +102,14 @@ def perform_recon():
                     print_with_color("E: Exception while reading "+fullpath,"ERROR")
                 continue
 
-            threads = []
-            for function in find_functions_list:
-                thread = threading.Thread(target=function, args=(filecontent,))
+            #threading pattern search for faster results
+            threads=[]
+            for name, pattern in regex_patterns.items():
+                if isinstance(pattern, list):
+                    for p in pattern:
+                        thread = threading.Thread(target=pattern_search, args=(p, name, filecontent))
+                else:
+                    thread = threading.Thread(target=pattern_search, args=(pattern, name, filecontent))
                 thread.start()
                 threads.append(thread)
             for thread in threads:
@@ -182,22 +123,13 @@ def check_result(name, result):
         print_list(result)
 
 def display_results():
-    global in_scope_authority_list, authority_list, s3_list, s3_website_list, public_ip_list, gmap_keys, custom_pattern_list
-    in_scope_authority_list=list(set(in_scope_authority_list))
-    authority_list=list(set(authority_list))
-    s3_list=list(set(s3_list))
-    s3_website_list=list(set(s3_website_list))
-    public_ip_list=list(set(public_ip_list))
-    gmap_keys=list(set(gmap_keys))
+    global pattern_list
 
-    check_result('URL', authority_list)
-    check_result('Scope in URL', in_scope_authority_list)
-    check_result('S3 bucket', s3_list)
-    check_result('S3 Website', s3_website_list)
-    check_result('IP', public_ip_list)
-    check_result('Google Map API', gmap_keys)
-    for pattern in custom_pattern_list:
-            check_result(pattern, custom_pattern_list[pattern])
+    for pattern in pattern_list:
+            check_result(pattern, pattern_list[pattern])
+    if pattern_list=={}:
+        print_with_color("No secrets found", "INSECURE")
+
     print("")
 
 ####################################################################################################
@@ -222,13 +154,11 @@ group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('-p', '--project', help='Path to the project directory')
 group.add_argument('-a', '--apk', help='Set the APK file')
 parser.add_argument('-d', '--decompiler', help='If you select apk option, you can specify the decompiler. Default: apktool', default='apktool', choices=['apktool', 'jadx'], required=False)
-parser.add_argument('-s', '--scope', help='List of keywords to filter out domains', required=False)
 parser.add_argument('-c', '--custom', help='Custom pattern json file', required=False)
 parser.add_argument('-he', '--hidden-error', help='Hidden error for filename read, parse regex', action='store_true', required=False)
 args = parser.parse_args()
 
-if args.hidden_error:
-    hidden_error = True
+hidden_error = args.hidden_error
 
 if args.project:
     project_path=args.project
@@ -252,16 +182,14 @@ elif args.apk:
         sys.exit(1)
     print_with_color("I: Decompiling completed", "INFO_WS")
 
-if (args.scope):
-    scope_string = args.scope
-    scope_list = scope_string.split(",")
-    if len(scope_list) > 0:
-        scope_mode = True
-
 if (args.custom):
     is_valid_path('Custom Pattern', project_path)
     custom_pattern_file = args.custom
-    custom_pattern()
+    pattern_file_to_list(custom_pattern_file)
+else:
+    is_valid_path("Standart Pattern",pattern_file)
+    pattern_file_to_list(pattern_file)
+pattern_scope_check()
 
 try:
     perform_recon()
