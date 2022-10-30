@@ -121,7 +121,7 @@ def check_result(name, result):
     else:
         print_with_color("\nList of "+name+"s found in the application", "SECURE")
         print_list(result)
-
+                
 def display_results():
     global pattern_list
 
@@ -132,6 +132,18 @@ def display_results():
 
     print("")
 
+def save_results(file_name):
+    global pattern_list
+    
+    for name, result in pattern_list.items():
+        if (len(result)==0):
+            continue
+        with open(file_name, mode='a') as file:
+            file.write("List of " + name + "s found in the application" + "\n")
+            for item in result:
+                file.write(item + "\n")
+            file.write("="*50 + "\n\n")
+    print_with_color("I: Results saved in "+root_dir+name+".txt", "INFO_WS")
 ####################################################################################################
 
 print_with_color(""" 
@@ -155,6 +167,7 @@ group.add_argument('-p', '--project', help='Path to the project directory')
 group.add_argument('-a', '--apk', help='Set the APK file')
 parser.add_argument('-d', '--decompiler', help='If you select apk option, you can specify the decompiler. Default: apktool', default='apktool', choices=['apktool', 'jadx'], required=False)
 parser.add_argument('-c', '--custom', help='Custom pattern json file', required=False)
+parser.add_argument('-o', '--output', help='Output file path (i.e. ./exampletld.txt)', required=False)
 parser.add_argument('-he', '--hidden-error', help='Hidden error for filename read, parse regex', action='store_true', required=False)
 args = parser.parse_args()
 
@@ -191,9 +204,12 @@ else:
     pattern_file_to_list(pattern_file)
 pattern_scope_check()
 
+output = args.output
 try:
     perform_recon()
     display_results()
+    if output:
+        save_results(output)
 except KeyboardInterrupt:
     print_with_color("I: Acknowledging KeyboardInterrupt. Thank you for using APKLeakData", "INFO_WS")
     exit(0)

@@ -30,6 +30,7 @@ The utility takes APK file as an input, performs reverse engineering and gathers
 | -d | If the apk file is selected, you can choose the decompiler. (Apktool or jadx). Default: apktool | python APKLeakData.py -a apkfile.apk -d jadx
 |  -c |  Custom regext pattern file location. File format: Json |  pyhon APKLeakData.py -p ~/decompile-apk-path -c custom_search.json   |
 | -he | Hidden File reading error(binary file) | pyhon APKLeakData.py -p ~/decompile-apk-path -he |
+| -o | Output file path/name | pyhon APKLeakData.py -p ~/decompile-apk-path -o ~/leak-data.txt |
 
 ## Custom Pattern File
 The file must be in json format. You can use multiple patterns in one value. 
@@ -82,5 +83,5 @@ The larger the file, the longer it will take. You can set yourself a json which 
 
 ## What I plan to do
 - [X] Now we can only use the decompile project with APKTOOL. But I want to add it from the APK file and analyze it. (Now use apktool or jadx)
-- Save the output to a file.
+- [X] Save the output to a file.
 - Allow the thread limit from the user. In this way, I think it will work faster by increasing the thread limit.
