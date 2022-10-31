@@ -1,6 +1,6 @@
 {
-    "Urls": {
-        "regex": ["http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"]
+    "Url": {
+        "regex": ["http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"],
     },
     "Amazon S3":[
         "https*:\/\/(.+?)\\.s3\\..+?\\.amazonaws\\.com\\\/.+?",
@@ -9,7 +9,7 @@
         "https*:\/\/(.+?)\\.s3-website\\..+?\\.amazonaws\\.com",
         "https*:\/\/(.+?)\\.s3-website-.+?\\.amazonaws\\.com"
     ],
-    "IP Addresses": {
+    "IP Address": {
         "regex": ["\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b"]
     },
     "Google Api":"AIza[0-9A-Za-z\\-_]{35}"

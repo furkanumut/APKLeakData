@@ -100,10 +100,10 @@
 	"Slack Webhook": "https://hooks.slack.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}",
 	"Twilio API Key": "SK[0-9a-fA-F]{32}",
 	"FCM Server Keys for push notification": "AAAA[a-zA-Z0-9_-]{7}:[a-zA-Z0-9_-]{140}",
-    "IP Addresses": {
+    "IP Address": {
         "regex": ["\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b"]
     },
-    "Urls": {
+    "Url": {
         "regex": ["http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"]
-    }
+	}
 }

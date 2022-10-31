@@ -9,13 +9,14 @@ from src.ApkDecompiler import ApkDecompiler as Decompiler
 from src.ColorizedPrint import ColorizedPrint as print_with_color
 
 root_dir=os.getcwd()+"/extractedApk/"
-apk_path=""
-project_path=""
-scope_mode=False
 pattern_file="./src/regex.json"
-pattern_list=dict()
+scope_mode=False
+project_path=""
+apk_path=""
 
+found_patterns=dict()
 scope_list=dict()
+execute_command_list = dict() #if found pattern and have execute command then execute it
 
 regex_patterns =[]
 
@@ -36,15 +37,15 @@ def print_list(lst):
         print_with_color(entry, "PLAIN_WS")
 
 def add_pattern(name, value):
-    global pattern_list
+    global found_patterns
 
     name = name.capitalize()
-    if name in pattern_list:
-        if value in pattern_list[name]:
+    if name in found_patterns:
+        if value in found_patterns[name]:
             return
-        pattern_list[name].append(value)
+        found_patterns[name].append(value)
     else:
-        pattern_list[name]=[value]
+        found_patterns[name]=[value]
 
 def pattern_search(pattern, name, line):
     try:
@@ -67,18 +68,21 @@ def pattern_file_to_list(file_name):
         print_with_color("E: Error json parse in pattern file: "+file_name, "ERROR")
         exit(1)
 
-def pattern_scope_check():
+def pattern_configuration():
+    global regex_patterns
     global scope_list
     global scope_mode
-    global regex_patterns
+    global execute_command_list
 
     for pattern_name in regex_patterns:
         if isinstance(regex_patterns[pattern_name], dict) :
             if "scope" in regex_patterns[pattern_name].keys():
                 scope_mode=True
                 scope_list[pattern_name] = regex_patterns[pattern_name]['scope']
+            if "command" in regex_patterns[pattern_name].keys():
+                execute_command_list[pattern_name] = regex_patterns[pattern_name]['command']
             regex_patterns[pattern_name] = regex_patterns[pattern_name]['regex']
-    
+
 def perform_recon():
     global regex_patterns
     without_file_extensions=['.png', '.webp', '.jpg', '.gif', '.otf', '.ttf']
@@ -123,19 +127,33 @@ def check_result(name, result):
         print_list(result)
                 
 def display_results():
-    global pattern_list
+    global found_patterns
 
-    for pattern in pattern_list:
-            check_result(pattern, pattern_list[pattern])
-    if pattern_list=={}:
+    for pattern in found_patterns:
+            check_result(pattern, found_patterns[pattern])
+    if found_patterns=={}:
         print_with_color("No secrets found", "INSECURE")
 
     print("")
 
+def execute_commands():
+    global execute_command_list
+    global found_patterns
+    print_with_color("I: Executing commands", "INFO_WS")
+    for name, command in execute_command_list.items():
+        if name not in found_patterns:
+            continue
+        for found_item in found_patterns[name]:
+            if command['replace_item']:
+                found_item = found_item.replace(command['replace_item']['old'], command['replace_item']['new'])
+            execute = command['execute'].replace("{}", found_item)
+            os.system(execute)
+    print_with_color("I: Commands executed", "INFO_WS")
+
 def save_results(file_name):
-    global pattern_list
+    global found_patterns
     
-    for name, result in pattern_list.items():
+    for name, result in found_patterns.items():
         if (len(result)==0):
             continue
         with open(file_name, mode='a') as file:
@@ -202,12 +220,15 @@ if (args.custom):
 else:
     is_valid_path("Standart Pattern",pattern_file)
     pattern_file_to_list(pattern_file)
-pattern_scope_check()
 
+pattern_configuration()
 output = args.output
+
 try:
     perform_recon()
     display_results()
+    execute_commands()
+
     if output:
         save_results(output)
 except KeyboardInterrupt:
